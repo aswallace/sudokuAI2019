@@ -2,7 +2,7 @@
 
 import argparse
 
-from Tkinter import Tk, Canvas, Frame, Button, BOTH, TOP, BOTTOM
+from tkinter import Tk, Canvas, Frame, Button, BOTH, TOP, BOTTOM
 
 
 # TODO: will get rid of BOARDS list
