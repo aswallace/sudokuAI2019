@@ -288,8 +288,9 @@ if __name__ == '__main__':
 
 
     with open('%s.sudoku' % board_name, 'r') as boards_file:
-
+        print(type(boards_file))
         game = SudokuGame(boards_file)
+
         game.start()
 
         root = Tk()
