@@ -253,26 +253,26 @@ class SudokuGame(object):
 
     ###TODO: figure out how to test these
     ###TODO: make sure they work
-    # def getRow(self, row):
-    #     '''given a row index, returns the values of all the cells in that row'''
-    #     return self.puzzle[row]
-    #
-    # def getCol(self, col):
-    #     '''given a column index, returns the values of all the cells in that row'''
-    #     colList = []
-    #     for i in range(9):
-    #         colList.append(self.puzzle[i][col])
-    #     return colList
-    #
-    # def getBox(self, row, col):
-    #     '''given the row and column for a cell in the box, returns the value of all the cells in the box'''
-    #     startCol = (col//3) * 3
-    #     startRow = (row//3) *3
-    #     boxList = []
-    #     for i in range(3):
-    #         for j in range(3):
-    #             boxList.append(self.puzzle[startRow+ i][startCol+j])
-    #     return boxList
+    def getRow(self, row):
+        '''given a row index, returns the values of all the cells in that row'''
+        return self.puzzle[row]
+    
+    def getCol(self, col):
+        '''given a column index, returns the values of all the cells in that row'''
+        colList = []
+        for i in range(9):
+            colList.append(self.puzzle[i][col])
+        return colList
+    
+    def getBox(self, row, col):
+        '''given the row and column for a cell in the box, returns the value of all the cells in the box'''
+        startCol = (col//3) * 3
+        startRow = (row//3) *3
+        boxList = []
+        for i in range(3):
+            for j in range(3):
+                boxList.append(self.puzzle[startRow+ i][startCol+j])
+        return boxList
 
 
 
