@@ -1,6 +1,7 @@
 # downloaded from http://newcoder.io/gui/part-4/
 
 import argparse
+import solver
 
 from tkinter import Tk, Canvas, Frame, Button, BOTH, TOP, BOTTOM
 
@@ -32,10 +33,9 @@ def parse_arguments():
                             help="puzzle board file name", required=True)
     arg_parser.add_argument('-f', '--fileformat', default='w', help='File format. w=Warwick, s=sample')
     arg_parser.add_argument('-w', '--which', type=int, default=0, help='which line of puzzle you want to use (only applicable for Warwick puzzle file format)')
+    arg_parser.add_argument('-a', '--ai', action='store_true', default=False, help='Solve puzzle with AI')
 
-
-    # Creates a dictionary of keys = argument flag, and value = argument
-    args = vars(arg_parser.parse_args())
+    args = arg_parser.parse_args()
     return args
 
 
@@ -315,6 +315,16 @@ class SudokuGame(object):
                 boxList.append(self.puzzle[startRow+ i][startCol+j])
         return boxList
 
+    def solveSudoku(self):
+        '''Solve the puzzle and print the solution'''
+        sudokuMan = solver.SudokuSolver(self.start_puzzle)
+        assignment = sudokuMan.backtrackingSearch()
+        for key in assignment.keys():
+            row = key[0]
+            col = key[1]
+            self.puzzle[row][col] = assignment[key]
+        print(self.puzzle)
+
 
 
 
@@ -322,18 +332,16 @@ if __name__ == '__main__':
     args = parse_arguments()
 
     #TODO: add error handling
-    which = args['which']
-    board_name = args['board']
-    fileformat = args['fileformat']
+    boards_file = open(args.board_name)
 
-    boards_file = open(board_name)
+    game = SudokuGame(boards_file, args.fileformat, args.which)
 
-    print(type(boards_file))
-    game = SudokuGame(boards_file, fileformat, which)
+    if args.ai: 
+        game.solveSudoku()
 
-    game.start()
-
-    root = Tk()
-    SudokuUI(root, game)
-    root.geometry("%dx%d" % (WIDTH, HEIGHT + 40))
-    root.mainloop()
+    else:
+        game.start()
+        root = Tk()
+        SudokuUI(root, game)
+        root.geometry("%dx%d" % (WIDTH, HEIGHT + 40))
+        root.mainloop()

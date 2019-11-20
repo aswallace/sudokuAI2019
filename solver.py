@@ -94,7 +94,7 @@ class SudokuSolver:
         '''least constraining value, a value order heuristic. Given a variable and a CSP,
         returns the value in the variables domain that rules out the fewest values for 
         neighboring variables '''
-         return oldAssign
+        return oldAssign
 
 
     def arcReduce(self, CSP, X, Y):
