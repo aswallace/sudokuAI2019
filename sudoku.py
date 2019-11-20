@@ -294,8 +294,6 @@ class SudokuGame(object):
         )
 
 
-    ###TODO: figure out how to test these
-    ###TODO: make sure they work
     def getRow(self, row):
         '''given a row index, returns the values of all the cells in that row'''
         return self.puzzle[row]
