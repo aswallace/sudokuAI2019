@@ -7,9 +7,9 @@ import array
 
 ###TODO: integrate with sudoku.py
 class SudokuSolver:
-    def __init__(self, board):
-        self.board = board
-        self.assignment = self.makeAssignment(board)
+    def __init__(self, sudokuGame):
+        self.game = sudokuGame
+        self.assignment = self.makeAssignment(sudokuGame.start_puzzle)
     
     def makeAssignment(self, board):
         assignment = {}
@@ -17,7 +17,7 @@ class SudokuSolver:
             for col in range(NCOLS):
                 currCell = board[row][col]
                 if currCell != 0:
-                    assignment[(row, col)] = currCell
+                    assignment[(row, col)] = [currCell]
                 else:
                     assignment[(row, col)] = DOMAIN
         return assignment
@@ -52,11 +52,13 @@ class SudokuSolver:
             oldAssign = assignment[var]
           #  oldAssign = self.LCV(oldAssign) #TODO: Order values in old assignment of var
             for val in oldAssign:
-                assignment[var] = val
+                assignment[var] = [val]
                 result = self.recursiveBacktrack(assignment)
-                if self.consistent(assignment):
+                if self.consistent(var):
+                    print("found result")
                     return result
                 else:
+                    print("removing val")
                     oldAssign.remove(val)
                     assignment[var] = oldAssign
 
@@ -66,15 +68,17 @@ class SudokuSolver:
     def isComplete(self, assignment):
         '''checks if every variable in assignment has only 1 value assigned'''
         for key in assignment.keys():
-            if len(assignment[key] > 1):
+            if len(assignment[key]) > 1:
+                print("key is", key)
+                print(assignment[key])
                 return False
         return True 
 
     def consistent(self, var):
         ''' Checks that assignment of variable var does not violate CSP constraints '''
-        row = self.board.getRow(var[0])
-        col = self.board.getCol(var[1])
-        box = self.board.getCol(var[0], var[1])
+        row = self.game.getRow(var[0])
+        col = self.game.getCol(var[1])
+        box = self.game.getBox(var[0], var[1])
         return self.allDiff(row) and self.allDiff(col) and self.allDiff(box)
 
     ### TODO: Think about implementing highest degree variable tie breaker
@@ -85,30 +89,31 @@ class SudokuSolver:
         minLen = 9
         assignment = self.assignment
         for key in assignment.keys():
-            if len(assignment[key]) < minLen:
+            if len(assignment[key]) <= minLen and len(assignment[key]) > 1:
                 minSoFar = key
                 minLen = len(assignment[key])
         return minSoFar
 
+    ###TODO
     def LCV(self, oldAssign):
         '''least constraining value, a value order heuristic. Given a variable and a CSP,
         returns the value in the variables domain that rules out the fewest values for 
         neighboring variables '''
         return oldAssign
 
-
+    ###TODO
     def arcReduce(self, CSP, X, Y):
         '''helper function for AC3. Imposes arc consistency on the relation from X to Y'''
         return 0
         #pseudocode in notes
 
-
+    ###TODO
     def AC3(self, CSP):
         '''implements constraint propogation and updates the domains of all the variables'''
         return 0
         #pseudocode in notes
 
-
+    ###TODO
     def MAC(self, CSP):
         '''Maintaining Arc Consistency. Alternates between interleave search and AC3.
         I think this is an alternative to backtracking-search? not super sure'''

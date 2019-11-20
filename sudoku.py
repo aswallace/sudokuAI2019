@@ -317,7 +317,12 @@ class SudokuGame(object):
 
     def solveSudoku(self):
         '''Solve the puzzle and print the solution'''
-        sudokuMan = solver.SudokuSolver(self.start_puzzle)
+        self.puzzle = []
+        for i in range(9):
+            self.puzzle.append([])
+            for j in range(9):
+                self.puzzle[i].append(self.start_puzzle[i][j])
+        sudokuMan = solver.SudokuSolver(self)
         assignment = sudokuMan.backtrackingSearch()
         for key in assignment.keys():
             row = key[0]
@@ -332,7 +337,7 @@ if __name__ == '__main__':
     args = parse_arguments()
 
     #TODO: add error handling
-    boards_file = open(args.board_name)
+    boards_file = open(args.board)
 
     game = SudokuGame(boards_file, args.fileformat, args.which)
 
