@@ -5,7 +5,6 @@ import argparse
 from tkinter import Tk, Canvas, Frame, Button, BOTH, TOP, BOTTOM
 
 
-# TODO: will get rid of BOARDS list
 BOARDS = ['debug', 'n00b', 'l33t', 'error']  # Available sudoku boards
 MARGIN = 20  # Pixels around the board
 SIDE = 50  # Width of every board cell.
@@ -29,15 +28,15 @@ def parse_arguments():
     Where `board name` must be in the `BOARD` list
     """
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--board",
-                            help="Desired board name",
-                            type=str,
-                            choices=BOARDS,
-                            required=True)
+    arg_parser.add_argument('-b', "--board",
+                            help="puzzle board file name", required=True)
+    arg_parser.add_argument('-f', '--fileformat', default='w', help='File format. w=Warwick, s=sample')
+    arg_parser.add_argument('-w', '--which', type=int, default=0, help='which line of puzzle you want to use (only applicable for Warwick puzzle file format)')
+
 
     # Creates a dictionary of keys = argument flag, and value = argument
     args = vars(arg_parser.parse_args())
-    return args['board']
+    return args
 
 
 class SudokuUI(Frame):
@@ -173,10 +172,54 @@ class SudokuBoard(object):
     """
     Sudoku Board representation
     """
-    def __init__(self, board_file):
-        self.board = self.__create_board(board_file)
+    def __init__(self, board_file, fileformat, which):
+        self.board = self.__create_board(board_file, fileformat, which)
 
-    def __create_board(self, board_file):
+    def __create_board(self, board_file, fileformat, which):
+        board = []
+        if fileformat == 's':
+            board = self.__sampleCreateBoard(board_file)
+        elif fileformat == 'w':
+            board = self.__warwickCreateBoard(board_file, which)
+        else:
+            raise SudokuError(
+                "You dummy, you put in an invalid file format. Shame!"
+            )
+        return board
+
+
+    def __warwickCreateBoard(self, board_file, which):
+        '''board (list of lists) creator for files from warwick website. reads file
+        until it gets to the desired line, populates the board, replaces empty cells with
+        0 instead of .'''
+        board = []
+
+        #read to the correct line
+        line = ''
+        for i in range(which+1):
+            line = board_file.readline()
+
+        #populate the board with the desired puzzle
+        for j in range(9):
+            board.append([])
+
+            for k in range(9):
+                char = line[j*9 +k]
+                if char == '.': #empty cells
+                    board[-1].append(0)
+                elif not char.isdigit(): #bad input :(
+                    raise SudokuError(
+                        "Valid characters for a sudoku puzzle must be in 0-9. Shame!"
+                    )
+                else: #numbers (filled cells)
+                    board[-1].append(int(char))
+
+
+        return board
+
+
+    def __sampleCreateBoard(self, board_file):
+        '''board (list of lists) creator for sample .sudoku files'''
         board = []
         for line in board_file:
             line = line.strip()
@@ -203,9 +246,9 @@ class SudokuGame(object):
     A Sudoku game, in charge of storing the state of the board and checking
     whether the puzzle is completed.
     """
-    def __init__(self, board_file):
-        self.board_file = board_file
-        self.start_puzzle = SudokuBoard(board_file).board
+    def __init__(self, board_file, fileformat, which):
+        #self.board_file = board_file
+        self.start_puzzle = SudokuBoard(board_file, fileformat, which).board
 
     def start(self):
         self.game_over = False
@@ -251,17 +294,19 @@ class SudokuGame(object):
         )
 
 
+    ###TODO: figure out how to test these
+    ###TODO: make sure they work
     def getRow(self, row):
         '''given a row index, returns the values of all the cells in that row'''
         return self.puzzle[row]
-    
+
     def getCol(self, col):
         '''given a column index, returns the values of all the cells in that row'''
         colList = []
         for i in range(9):
             colList.append(self.puzzle[i][col])
         return colList
-    
+
     def getBox(self, row, col):
         '''given the row and column for a cell in the box, returns the value of all the cells in the box'''
         startCol = (col//3) * 3
@@ -276,22 +321,21 @@ class SudokuGame(object):
 
 
 if __name__ == '__main__':
-    board_name = parse_arguments()
+    args = parse_arguments()
 
-    #### TODO: add arguments
-    # add options for adding an agent file (see connectfour.py for examples)
-    # plus whatever other options we add
-    # and then code to parse those arguments
+    #TODO: add error handling
+    which = args['which']
+    board_name = args['board']
+    fileformat = args['fileformat']
 
+    boards_file = open(board_name)
 
+    print(type(boards_file))
+    game = SudokuGame(boards_file, fileformat, which)
 
-    with open('%s.sudoku' % board_name, 'r') as boards_file:
-        print(type(boards_file))
-        game = SudokuGame(boards_file)
+    game.start()
 
-        game.start()
-
-        root = Tk()
-        SudokuUI(root, game)
-        root.geometry("%dx%d" % (WIDTH, HEIGHT + 40))
-        root.mainloop()
+    root = Tk()
+    SudokuUI(root, game)
+    root.geometry("%dx%d" % (WIDTH, HEIGHT + 40))
+    root.mainloop()
