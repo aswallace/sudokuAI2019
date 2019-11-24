@@ -4,6 +4,7 @@ NROWS = 9
 NCOLS = 9
 
 import array
+import copy
 
 ###TODO: integrate with sudoku.py
 class SudokuSolver:
@@ -39,23 +40,27 @@ class SudokuSolver:
     def backtrackingSearch(self):
         '''Takes in a constraint satisfaction problem as input and returns assignments
         for all the variables (as a dictionary)'''
-        return self.recursiveBacktrack(self.assignment)
+        # return self.recursiveBacktrack(self.assignment)
+        return self.recursiveBacktrack()
 
 
-    def recursiveBacktrack(self, assignment):
+    def recursiveBacktrack(self):
         '''recursive helper for backtracking-search().
         Returns null if there is no solution for the given assignments, returns the solution otherwise'''
+        assignment = self.assignment
         if self.isComplete(assignment): # check if assignment is complete
             return assignment
         else:
-            var = self.MRV() # TODO: Make sure not passing assignment is ok
-            oldAssign = assignment[var]
+            var = self.MRV(assignment)
+            # print("var: ", var)
+            oldAssign = copy.deepcopy(assignment[var])
+            options = oldAssign.copy() # to avoid skipping options
           #  oldAssign = self.LCV(oldAssign) #TODO: Order values in old assignment of var
-            for val in oldAssign:
+            for val in options:
                 assignment[var] = [val]
-                result = self.recursiveBacktrack(assignment)
-                if self.consistent(var):
-                    print("found result")
+                result = self.recursiveBacktrack() #REmember yiouc ahnged this
+                if self.consistent(var, val):
+                    print("found result for", var)
                     return result
                 else:
                     print("removing val")
@@ -74,20 +79,28 @@ class SudokuSolver:
                 return False
         return True 
 
-    def consistent(self, var):
+    ### TODO: game object does not seem to be updated with the assignment
+    def consistent(self, var, val):
         ''' Checks that assignment of variable var does not violate CSP constraints '''
-        row = self.game.getRow(var[0])
-        col = self.game.getCol(var[1])
-        box = self.game.getBox(var[0], var[1])
+        # print("In consistent: ", var, val)
+        row = self.game.getRow(var[0]).copy()
+        row[var[1]] = val
+        print("row is ", row)
+        col = self.game.getCol(var[1]).copy()
+        col[var[0]] = val
+        print("col is ", col)
+        box = self.game.getBox(var[0], var[1]).copy()
+        index = ((var[0]%3)+1) * ((var[1]%3)+1) -1
+        box[index] = val
+        print("box is ", box)
         return self.allDiff(row) and self.allDiff(col) and self.allDiff(box)
 
     ### TODO: Think about implementing highest degree variable tie breaker
-    def MRV(self):
+    def MRV(self, assignment):
         '''minimum remaining values, a variable order heuristic. Returns the variable
         with the fewest options left in its domain. Breaks ties arbitrarily '''
         minSoFar = ()
         minLen = 9
-        assignment = self.assignment
         for key in assignment.keys():
             if len(assignment[key]) <= minLen and len(assignment[key]) > 1:
                 minSoFar = key
@@ -119,3 +132,5 @@ class SudokuSolver:
         I think this is an alternative to backtracking-search? not super sure'''
         #instead of checking consistency with csp.constraints, impose arc-consistency w AC3
         # then run MACtracking (recursive backtracking) again
+
+

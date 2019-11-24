@@ -328,7 +328,15 @@ class SudokuGame(object):
             row = key[0]
             col = key[1]
             self.puzzle[row][col] = assignment[key]
-        print(self.puzzle)
+        self.printSolution(self.puzzle)
+
+    def printSolution(self, puzzle):
+        for row in range(9):
+            rowStr = ""
+            for col in range(9):
+                rowStr += str(puzzle[row][col][0])
+            print(rowStr)
+
 
 
 
