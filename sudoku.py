@@ -324,11 +324,15 @@ class SudokuGame(object):
                 self.puzzle[i].append(self.start_puzzle[i][j])
         sudokuMan = solver.SudokuSolver(self)
         assignment = sudokuMan.backtrackingSearch()
-        for key in assignment.keys():
-            row = key[0]
-            col = key[1]
-            self.puzzle[row][col] = assignment[key]
-        self.printSolution(self.puzzle)
+        if not assignment:
+            print ("AAAAAAAAAAAAAAA dummy")
+        else:
+            for key in assignment.keys():
+                row = key[0]
+                col = key[1]
+                self.puzzle[row][col] = assignment[key]
+            print("self.puzzle", self.puzzle)
+            self.printSolution(self.puzzle)
 
     def printSolution(self, puzzle):
         for row in range(9):
@@ -336,6 +340,16 @@ class SudokuGame(object):
             for col in range(9):
                 rowStr += str(puzzle[row][col][0])
             print(rowStr)
+
+    def addToGame(self, var, val):
+        row = var[0]
+        col = var[1]
+        self.puzzle[row][col] = val
+    
+    def removeFromGame(self, var):
+        row = var[0]
+        col = var[1]
+        self.puzzle[row][col] = 0
 
 
 

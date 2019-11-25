@@ -48,7 +48,8 @@ class SudokuSolver:
         '''recursive helper for backtracking-search().
         Returns null if there is no solution for the given assignments, returns the solution otherwise'''
         assignment = self.assignment
-        if self.isComplete(assignment): # check if assignment is complete
+        #if self.isComplete(assignment): # check if assignment is complete
+        if self.isComplete(): 
             return assignment
         else:
             var = self.MRV(assignment)
@@ -57,26 +58,38 @@ class SudokuSolver:
             options = oldAssign.copy() # to avoid skipping options
           #  oldAssign = self.LCV(oldAssign) #TODO: Order values in old assignment of var
             for val in options:
-                assignment[var] = [val]
-                result = self.recursiveBacktrack() #REmember yiouc ahnged this
                 if self.consistent(var, val):
-                    print("found result for", var)
-                    return result
-                else:
-                    print("removing val")
-                    oldAssign.remove(val)
-                    assignment[var] = oldAssign
+                    assignment[var] = [val]
+                    self.game.addToGame(var, val)
+                    result = self.recursiveBacktrack() #REmember yiouc ahnged this
+                    if result != False:
+                        return result
+                    # print("found result for", var)
+                    else:
+                #     print("removing val")
+                        oldAssign.remove(val)
+                        assignment[var] = oldAssign
+                        self.game.removeFromGame(var)
+            return False  #TODO: Do we need this? PROF ERIN
 
         return False #FAIL
 
     ### TODO: Optimize this
-    def isComplete(self, assignment):
-        '''checks if every variable in assignment has only 1 value assigned'''
-        for key in assignment.keys():
-            if len(assignment[key]) > 1:
-                print("key is", key)
-                print(assignment[key])
-                return False
+    # def isComplete(self, assignment):
+    #     '''checks if every variable in assignment has only 1 value assigned'''
+    #     for key in assignment.keys():
+    #         if len(assignment[key]) > 1:
+    #             print("key is", key)
+    #             print(assignment[key])
+    #             return False
+    #     return True 
+
+    def isComplete(self): 
+        for row in range(9): 
+            for col in range(9): 
+                print('current row', row, 'current col', col, 'value!', self.game.puzzle[row][col])
+                if self.game.puzzle[row][col] == 0: 
+                    return False
         return True 
 
     ### TODO: game object does not seem to be updated with the assignment
