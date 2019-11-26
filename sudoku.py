@@ -323,7 +323,7 @@ class SudokuGame(object):
             for j in range(9):
                 self.puzzle[i].append(self.start_puzzle[i][j])
         sudokuMan = solver.SudokuSolver(self)
-        assignment = sudokuMan.backtrackingSearch()
+        assignment, numExpanded = sudokuMan.backtrackingSearch()
         if not assignment:
             print ("AAAAAAAAAAAAAAA dummy")
         else:
@@ -333,6 +333,7 @@ class SudokuGame(object):
                 self.puzzle[row][col] = assignment[key]
             print("self.puzzle", self.puzzle)
             self.printSolution(self.puzzle)
+        return numExpanded
 
     def printSolution(self, puzzle):
         for row in range(9):
@@ -345,7 +346,7 @@ class SudokuGame(object):
         row = var[0]
         col = var[1]
         self.puzzle[row][col] = val
-    
+
     def removeFromGame(self, var):
         row = var[0]
         col = var[1]
@@ -363,8 +364,9 @@ if __name__ == '__main__':
 
     game = SudokuGame(boards_file, args.fileformat, args.which)
 
-    if args.ai: 
-        game.solveSudoku()
+    if args.ai:
+        numExpanded = game.solveSudoku()
+        print("Nodes Expanded: " + str(numExpanded))
 
     else:
         game.start()

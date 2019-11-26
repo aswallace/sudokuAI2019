@@ -1,4 +1,7 @@
-# Global variables 
+import array
+import copy
+
+# Global variables
 DOMAIN = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 NROWS = 9
 NCOLS = 9
@@ -7,28 +10,28 @@ NCOLS = 9
 ##Check that domain of everything in assignment is always 9 when we arrive to it
 
 
-import array
-import copy
-
 class SudokuSolver:
     def __init__(self, sudokuGame):
         self.game = sudokuGame
         self.assignment = self.makeAssignment(sudokuGame.start_puzzle)
-    
+        self.nodesExpanded = 0
+
     def makeAssignment(self, board):
+        '''populates the assignment dictionary with the initial board values'''
         assignment = {}
         for row in range(NROWS):
             for col in range(NCOLS):
                 currCell = board[row][col]
-                if currCell != 0:
+                if currCell != 0: #if the cell is filled, assign that value to the dictionary
                     assignment[(row, col)] = [currCell]
-                else:
+                else: #otherwise, assign all values in the domain to the dictionary
                     assignment[(row, col)] = DOMAIN
         return assignment
-    
+
 
     def allDiff(self, cellArray):
         '''Takes in an array of 9 values as input and checks if they are all different.
+        0s are treated as empty values (not checked for differences).
         Returns True if they are, False otherwise. Note: values must be 1-9'''
         valsSeen = array.array('l', [0]*9)
         for val in cellArray:
@@ -43,16 +46,18 @@ class SudokuSolver:
     def backtrackingSearch(self):
         '''Takes in a constraint satisfaction problem as input and returns assignments
         for all the variables (as a dictionary)'''
-        # return self.recursiveBacktrack(self.assignment)
-        return self.recursiveBacktrack()
+        # return self.recursiveBacktrack(self.assignment
+        assignment = self.recursiveBacktrack()
+        return (assignment, self.nodesExpanded) 
 
 
     def recursiveBacktrack(self):
         '''recursive helper for backtracking-search().
         Returns null if there is no solution for the given assignments, returns the solution otherwise'''
+        self.nodesExpanded += 1
         assignment = self.assignment
         #if self.isComplete(assignment): # check if assignment is complete
-        if self.isComplete(): 
+        if self.isComplete():
             return assignment
         else:
             # print("BEFORE")
@@ -96,15 +101,15 @@ class SudokuSolver:
     #             print("key is", key)
     #             print(assignment[key])
     #             return False
-    #     return True 
+    #     return True
 
-    def isComplete(self): 
-        for row in range(9): 
-            for col in range(9): 
+    def isComplete(self):
+        for row in range(NROWS):
+            for col in range(NCOLS):
                 # print('current row', row, 'current col', col, 'value:', self.game.puzzle[row][col])
-                if self.game.puzzle[row][col] == 0: 
+                if self.game.puzzle[row][col] == 0:
                     return False
-        return True 
+        return True
 
     ### TODO: game object does not seem to be updated with the assignment
     def consistent(self, var, val):
@@ -140,7 +145,7 @@ class SudokuSolver:
     ###TODO
     def LCV(self, oldAssign):
         '''least constraining value, a value order heuristic. Given a variable and a CSP,
-        returns the value in the variables domain that rules out the fewest values for 
+        returns the value in the variables domain that rules out the fewest values for
         neighboring variables '''
         return oldAssign
 
@@ -162,5 +167,3 @@ class SudokuSolver:
         I think this is an alternative to backtracking-search? not super sure'''
         #instead of checking consistency with csp.constraints, impose arc-consistency w AC3
         # then run MACtracking (recursive backtracking) again
-
-
