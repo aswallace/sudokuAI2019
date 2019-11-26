@@ -18,6 +18,14 @@ Run the file sudoku.py with the following argument options:
 
 -a : Solve with AI!
 
+
+Example Commands to run the Solver: 
+
+"python sudoku.py -b debug.sudoku -a -f s" 
+
+"python sudoku.py -b top95.txt -a -f w -w 1" 
+
+
 --------------------------
 
 a running list of misc. thoughts/ideas that i wanted to write down in some consolidated place for the future:
