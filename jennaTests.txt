@@ -1,0 +1,82 @@
+Date: 11/26/19
+Tester: Jenna Kahn
+(initial) test results for backtrackingSearch with MRV, no any constraint propagation, no value-order heuristic
+
+
+1.
+time python sudoku.py -b puzzles/debug.sudoku -a -f s
+
+217385469
+385469712
+496721835
+524816973
+639547281
+871293546
+762158394
+953674128
+148932657
+Nodes Expanded: 2
+
+real    0m0.307s
+user    0m0.063s
+sys     0m0.094s
+
+
+
+2.
+time python sudoku.py -b puzzles/l33t.sudoku -a -f s
+
+819265374
+274983165
+536147928
+198624537
+457319682
+623758491
+362471859
+945832716
+781596243
+Nodes Expanded: 4726
+
+real    0m7.782s
+user    0m7.469s
+sys     0m0.063s
+
+
+
+3.
+time python sudoku.py -b puzzles/msk_009.txt -a -f w -w 1
+
+249186573
+735942186
+168375429
+512697348
+976834251
+483251967
+694723815
+327518694
+851469732
+Nodes Expanded: 171030
+
+real    5m11.760s
+user    4m57.609s
+sys     0m1.047s
+
+
+4.
+python sudoku.py -b puzzles/msk_009.txt -a -f w -w 2
+
+653287941
+794631258
+128945376
+819724563
+236859417
+547163829
+965372184
+372418695
+481596732
+Nodes Expanded: 98813
+
+5.
+time python sudoku.py -b puzzles/top95.txt -a -f w -w 1
+
+takes more than 19m34.055s to execute (stopped)

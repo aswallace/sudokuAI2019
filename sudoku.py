@@ -331,7 +331,6 @@ class SudokuGame(object):
                 row = key[0]
                 col = key[1]
                 self.puzzle[row][col] = assignment[key]
-            print("self.puzzle", self.puzzle)
             self.printSolution(self.puzzle)
         return numExpanded
 
