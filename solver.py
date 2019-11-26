@@ -3,10 +3,13 @@ DOMAIN = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 NROWS = 9
 NCOLS = 9
 
+##Solve l33t, make it smallest failure possible
+##Check that domain of everything in assignment is always 9 when we arrive to it
+
+
 import array
 import copy
 
-###TODO: integrate with sudoku.py
 class SudokuSolver:
     def __init__(self, sudokuGame):
         self.game = sudokuGame
@@ -52,26 +55,37 @@ class SudokuSolver:
         if self.isComplete(): 
             return assignment
         else:
-            var = self.MRV(assignment)
+            # print("BEFORE")
+            # print(assignment)
+            # print(self.game.puzzle)
+            var = self.MRV()
             # print("var: ", var)
-            oldAssign = copy.deepcopy(assignment[var])
-            options = oldAssign.copy() # to avoid skipping options
+            oldAssign = copy.deepcopy(assignment)
+            # varAssign = oldAssign[var].copy()
+            # oldAssign = copy.deepcopy(assignment[var])
+            # options = oldAssign[var].copy() # to avoid skipping options
           #  oldAssign = self.LCV(oldAssign) #TODO: Order values in old assignment of var
-            for val in options:
+            for val in oldAssign[var]:
+                # print("Options for ", var, "are", varAssign)
                 if self.consistent(var, val):
                     assignment[var] = [val]
                     self.game.addToGame(var, val)
-                    result = self.recursiveBacktrack() #REmember yiouc ahnged this
+                    # print("We're adding ", val, "to ", var)
+                    # print(self.game.puzzle)
+                    # print(assignment)
+                    result = self.recursiveBacktrack()
                     if result != False:
                         return result
                     # print("found result for", var)
                     else:
-                #     print("removing val")
-                        oldAssign.remove(val)
-                        assignment[var] = oldAssign
                         self.game.removeFromGame(var)
-            return False  #TODO: Do we need this? PROF ERIN
-
+                        # print("We're removing ", val, "from ", var)
+                        # print(self.game.puzzle)
+                        # varAssign.remove(val)
+                        # oldAssign[var] = varAssign.copy()
+                        self.assignment = copy.deepcopy(oldAssign) # TODO: test copy types
+                        assignment = self.assignment
+                        # print(assignment)
         return False #FAIL
 
     ### TODO: Optimize this
@@ -87,7 +101,7 @@ class SudokuSolver:
     def isComplete(self): 
         for row in range(9): 
             for col in range(9): 
-                print('current row', row, 'current col', col, 'value!', self.game.puzzle[row][col])
+                # print('current row', row, 'current col', col, 'value:', self.game.puzzle[row][col])
                 if self.game.puzzle[row][col] == 0: 
                     return False
         return True 
@@ -98,23 +112,26 @@ class SudokuSolver:
         # print("In consistent: ", var, val)
         row = self.game.getRow(var[0]).copy()
         row[var[1]] = val
-        print("row is ", row)
+        # print("row is ", row)
         col = self.game.getCol(var[1]).copy()
         col[var[0]] = val
-        print("col is ", col)
+        # print("col is ", col)
         box = self.game.getBox(var[0], var[1]).copy()
         index = ((var[0]%3)+1) * ((var[1]%3)+1) -1
         box[index] = val
-        print("box is ", box)
+        # print("box is ", box)
+        # print()
         return self.allDiff(row) and self.allDiff(col) and self.allDiff(box)
 
     ### TODO: Think about implementing highest degree variable tie breaker
-    def MRV(self, assignment):
+    def MRV(self):
         '''minimum remaining values, a variable order heuristic. Returns the variable
         with the fewest options left in its domain. Breaks ties arbitrarily '''
+        assignment = self.assignment
         minSoFar = ()
         minLen = 9
         for key in assignment.keys():
+            # print("IN MRV: ", key, assignment[key] )
             if len(assignment[key]) <= minLen and len(assignment[key]) > 1:
                 minSoFar = key
                 minLen = len(assignment[key])
