@@ -142,6 +142,10 @@ class SudokuSolver:
         '''least constraining value, a value order heuristic. Given a variable and a CSP,
         returns the value in the variables domain that rules out the fewest values for 
         neighboring variables '''
+        ## IDEAS: for each value, 
+        #  check how many things in each row, column, box have that value as part of their domain
+        # Then sort by that number
+        # Question: Is this even worth doing for sudoku????
         return oldAssign
 
     ###TODO
