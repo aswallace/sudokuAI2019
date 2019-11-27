@@ -58,6 +58,8 @@ class SudokuSolver:
             return assignment
         else:
             var = self.MRV() #choose a cell to assign using MRV heuristic
+
+            #self.orderByLCV(var) #order values for var using LCV heuristic
             oldAssign = copy.deepcopy(assignment) #store a copy of current assignment
 
             for val in oldAssign[var]:
@@ -114,11 +116,22 @@ class SudokuSolver:
         return minSoFar
 
     ###TODO
-    def LCV(self, oldAssign):
+    def orderByLCV(self, var):
         '''least constraining value, a value order heuristic. Given a variable and a CSP,
-        returns the value in the variables domain that rules out the fewest values for
+        re-orders the Availablevalues for that variable in assignment from most constraining to least constraining
+         the values in the variables domain that rules out the fewest values for
         neighboring variables '''
-        return oldAssign
+        #numConstraints = dictionary with (value, number of constraints) pairs
+
+        #for each variable in the variable's row:
+            #for value in assignment[var]:
+                #if the value is in that variable's possible domains:
+                    #add one to numConstraints[val]
+        #also do for column
+        #also do for the cells in the box (that aren't in the same row/column)
+
+        #sort the values by lowest value in numConstraints to highest
+        #make this sorted list the new value of assignment[var]
 
     ###TODO
     def arcReduce(self, CSP, X, Y):
