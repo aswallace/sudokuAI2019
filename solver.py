@@ -41,15 +41,16 @@ class SudokuSolver:
                     valsSeen[index] = 1
         return True
 
-    def backtrackingSearch(self):
-        '''Takes in a constraint satisfaction problem as input and returns assignments
+    def backtrackingSearch(self, forwardCheck=False):
+        '''Takes in a constraint satisfaction problem and forwardCheck (a boolean indicating
+        whether to use forward checking) as input and returns assignments
         for all the variables (as a dictionary)'''
         # return self.recursiveBacktrack(self.assignment
-        assignment = self.recursiveBacktrack()
+        assignment = self.recursiveBacktrack(forwardCheck)
         return (assignment, self.nodesExpanded)
 
 
-    def recursiveBacktrack(self):
+    def recursiveBacktrack(self, forwardCheck):
         '''recursive helper for backtracking-search().
         Returns null if there is no solution for the given assignments, returns the solution otherwise'''
         self.nodesExpanded += 1
@@ -66,7 +67,7 @@ class SudokuSolver:
                 if self.consistent(var, val): #if a value is consistent with constraints
                     assignment[var] = [val] #assign the value to the cell
                     self.game.addToGame(var, val)
-                    result = self.recursiveBacktrack() #recurse
+                    result = self.recursiveBacktrack(forwardCheck) #recurse
 
                     if result != False: #if the subtree finds a solution, return it
                         return result
