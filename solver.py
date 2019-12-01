@@ -67,6 +67,10 @@ class SudokuSolver:
                 if self.consistent(var, val): #if a value is consistent with constraints
                     assignment[var] = [val] #assign the value to the cell
                     self.game.addToGame(var, val)
+
+                    #####here is where we do forward checking
+                    #need a helper function 
+
                     result = self.recursiveBacktrack(forwardCheck) #recurse
 
                     if result != False: #if the subtree finds a solution, return it
