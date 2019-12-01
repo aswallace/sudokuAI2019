@@ -1,7 +1,12 @@
 import array
 import copy
+<<<<<<< HEAD
 neighborFile = open("neighbors.txt", "r")
 neighborDict = neighborFile.read()
+=======
+import json
+from neighborDict import neighbors
+>>>>>>> 6737c02db53625f9e559906e9211212d3c102ee4
 
 # Global variables
 DOMAIN = [1, 2, 3, 4, 5, 6, 7, 8, 9]
