@@ -1,5 +1,7 @@
 import array
 import copy
+import json
+from neighborDict import neighbors
 
 # Global variables
 DOMAIN = [1, 2, 3, 4, 5, 6, 7, 8, 9]
