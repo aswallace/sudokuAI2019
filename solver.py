@@ -43,15 +43,24 @@ class SudokuSolver:
                     valsSeen[index] = 1
         return True
 
-    def backtrackingSearch(self):
-        '''Takes in a constraint satisfaction problem as input and returns assignments
-        for all the variables (as a dictionary)'''
-        # return self.recursiveBacktrack(self.assignment
-        assignment = self.recursiveBacktrack()
+    def solveSudoku(self, solverMode):
+        '''wrapper function that interprets which algorithm to use. Takes in a
+        constraint satisfaction problem and an algorithm to use (b (basic), f
+        (forward-checking), or m (MAC)) as input and returns assignments for all
+        the variables (as a dictionary) and number of nodes expanded'''
+        if solverMode == 'p': #AC3 as pre-processing
+            #TODO: do AC3
+            self.AC3()
+
+            #then do basic backtracking search
+            assignment = self.recursiveBacktrack('b')
+        else:
+            assignment = self.recursiveBacktrack(solverMode)
+
         return (assignment, self.nodesExpanded)
 
 
-    def recursiveBacktrack(self):
+    def recursiveBacktrack(self, solverMode):
         '''recursive helper for backtracking-search().
         Returns null if there is no solution for the given assignments, returns the solution otherwise'''
         self.nodesExpanded += 1
@@ -66,6 +75,9 @@ class SudokuSolver:
 
             for val in oldAssign[var]:
                 if self.consistent(var, val): #if a value is consistent with constraints
+
+                    self.imposeConsistency(solverMode)
+
                     assignment[var] = [val] #assign the value to the cell
                     self.game.addToGame(var, val)
                     result = self.recursiveBacktrack() #recurse
@@ -135,21 +147,27 @@ class SudokuSolver:
         #sort the values by lowest value in numConstraints to highest
         #make this sorted list the new value of assignment[var]
 
+    def imposeConsistency(self, solverMode):
+        if solverMode == 'b':
+            return
+
+        if solverMode == 'f':
+            #TODO: do forward checking
+            pass
+
+        if solverMode == 'm':
+            #TODO: do AC3
+            pass
+
+
     ###TODO
-    def arcReduce(self, CSP, X, Y):
+    def arcReduce(self, X, Y):
         '''helper function for AC3. Imposes arc consistency on the relation from X to Y'''
         return 0
         #pseudocode in notes
 
     ###TODO
-    def AC3(self, CSP):
+    def AC3(self):
         '''implements constraint propogation and updates the domains of all the variables'''
         return 0
         #pseudocode in notes
-
-    ###TODO
-    def MAC(self, CSP):
-        '''Maintaining Arc Consistency. Alternates between interleave search and AC3.
-        I think this is an alternative to backtracking-search? not super sure'''
-        #instead of checking consistency with csp.constraints, impose arc-consistency w AC3
-        # then run MACtracking (recursive backtracking) again
