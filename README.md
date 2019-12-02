@@ -18,7 +18,7 @@ Run the file sudoku.py with the following argument options:
 
 -a : Solve with AI!
 
-
+-s : Specify what form of search to use. Only applicable to AI mode. Options:  b= basic search, p= with constraint propagation as pre-processing only, f=with forward-checking, m= MAC search
 
 Example Commands to run the Solver:
 

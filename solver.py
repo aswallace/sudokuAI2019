@@ -80,7 +80,7 @@ class SudokuSolver:
 
                     assignment[var] = [val] #assign the value to the cell
                     self.game.addToGame(var, val)
-                    result = self.recursiveBacktrack() #recurse
+                    result = self.recursiveBacktrack(solverMode) #recurse
 
                     if result != False: #if the subtree finds a solution, return it
                         return result

@@ -326,7 +326,7 @@ class SudokuGame(object):
             for j in range(9):
                 self.puzzle[i].append(self.start_puzzle[i][j])
         sudokuMan = solver.SudokuSolver(self)
-        assignment, numExpanded = sudokuMan.solveSudoku(solverModes)
+        assignment, numExpanded = sudokuMan.solveSudoku(solverMode)
         if not assignment:
             print ("AAAAAAAAAAAAAAA dummy")
         else:
