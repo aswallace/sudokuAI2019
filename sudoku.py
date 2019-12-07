@@ -35,6 +35,9 @@ def parse_arguments():
     arg_parser.add_argument('-w', '--which', type=int, default=0, help='which line of puzzle you want to use (only applicable for Warwick puzzle file format)')
     arg_parser.add_argument('-a', '--ai', action='store_true', default=False, help='Solve puzzle with AI')
 
+    #todo: check syntax
+    arg_parser.add_argument('-s', '--solverMode', choices=['b', 'p', 'f', 'm'], default='b', help='Which form of backtracking search to use. b= basic search, p= with constraint propagation as pre-processing only, f=with forward-checking, m= MAC search')
+
     args = arg_parser.parse_args()
     return args
 
@@ -315,7 +318,7 @@ class SudokuGame(object):
                 boxList.append(self.puzzle[startRow+ i][startCol+j])
         return boxList
 
-    def solveSudoku(self):
+    def solveSudoku(self, solverMode):
         '''Solve the puzzle and print the solution'''
         self.puzzle = []
         for i in range(9):
@@ -323,7 +326,7 @@ class SudokuGame(object):
             for j in range(9):
                 self.puzzle[i].append(self.start_puzzle[i][j])
         sudokuMan = solver.SudokuSolver(self)
-        assignment, numExpanded = sudokuMan.backtrackingSearch()
+        assignment, numExpanded = sudokuMan.solveSudoku(solverMode)
         if not assignment:
             print ("AAAAAAAAAAAAAAA dummy")
         else:
@@ -364,7 +367,7 @@ if __name__ == '__main__':
     game = SudokuGame(boards_file, args.fileformat, args.which)
 
     if args.ai:
-        numExpanded = game.solveSudoku()
+        numExpanded = game.solveSudoku(args.solverMode)
         print("Nodes Expanded: " + str(numExpanded))
 
     else:
