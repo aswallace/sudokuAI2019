@@ -1,12 +1,7 @@
 import array
 import copy
-<<<<<<< HEAD
-neighborFile = open("neighbors.txt", "r")
-neighborDict = neighborFile.read()
-=======
 import json
 from neighborDict import neighbors
->>>>>>> 6737c02db53625f9e559906e9211212d3c102ee4
 
 # Global variables
 DOMAIN = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -55,10 +50,15 @@ class SudokuSolver:
         the variables (as a dictionary) and number of nodes expanded'''
         if solverMode == 'p': #AC3 as pre-processing
             #TODO: do AC3
-            self.AC3()
-
-            #then do basic backtracking search
-            assignment = self.recursiveBacktrack('b')
+            worklist = set()
+            for key in neighbors.keys():
+                for value in neighbors[key]:
+                    worklist.add((key, value))
+                    worklist.add((value, key))
+            if self.AC3(worklist):
+                assignment = self.recursiveBacktrack('b')
+            else:
+                assignment = False
         else:
             assignment = self.recursiveBacktrack(solverMode)
 
@@ -81,18 +81,17 @@ class SudokuSolver:
             for val in oldAssign[var]:
                 if self.consistent(var, val): #if a value is consistent with constraints
 
-                    self.imposeConsistency(solverMode)
+                    if self.imposeConsistency(solverMode, var):
 
-                    assignment[var] = [val] #assign the value to the cell
-                    self.game.addToGame(var, val)
-                    result = self.recursiveBacktrack(solverMode) #recurse
+                        assignment[var] = [val] #assign the value to the cell
+                        self.game.addToGame(var, val)
+                        result = self.recursiveBacktrack(solverMode) #recurse
 
-                    if result != False: #if the subtree finds a solution, return it
-                        return result
-                    else:
-                        self.game.removeFromGame(var) #otherwise un-assign the value and try again
-                        self.assignment = copy.deepcopy(oldAssign)
-                        assignment = self.assignment
+                        if result != False: #if the subtree finds a solution, return it
+                            return result
+                    self.game.removeFromGame(var) #otherwise un-assign the value and try again
+                    self.assignment = copy.deepcopy(oldAssign)
+                    assignment = self.assignment
         return False #FAIL
 
     def isComplete(self):
@@ -152,27 +151,57 @@ class SudokuSolver:
         #sort the values by lowest value in numConstraints to highest
         #make this sorted list the new value of assignment[var]
 
-    def imposeConsistency(self, solverMode):
+    def imposeConsistency(self, solverMode, var):
         if solverMode == 'b':
-            return
+            return True
 
         if solverMode == 'f':
             #TODO: do forward checking
             pass
 
         if solverMode == 'm':
-            #TODO: do AC3
-            pass
+            worklist = self.makeWorkList(var)
+            return self.AC3(worklist)
 
 
     ###TODO
     def arcReduce(self, X, Y):
         '''helper function for AC3. Imposes arc consistency on the relation from X to Y'''
-        return 0
-        #pseudocode in notes
+        reduced = False
+        consistent = False
+        assignment = self.assignment
+        domainX = assignment[X]
+        # oldAssign = copy.deepcopy(assignment) #TODO: We probably don't need this
+        for x in domainX:
+            for y in assignment[Y]:
+                if y != x:
+                    consistent = True
+            if not consistent:
+                domainX.remove(x)
+                assignment[X] = domainX
+                reduced = True
+        return reduced
 
     ###TODO
-    def AC3(self):
+    def AC3(self, worklist):
         '''implements constraint propogation and updates the domains of all the variables'''
-        return 0
-        #pseudocode in notes
+        # get the neighbors of the value, add them to set as pair with value
+        # Make a set that has pairs of tuples
+        assignment = self.assignment
+        while len(worklist):
+            X, Y = worklist.pop()
+            if self.arcReduce(X, Y):
+                if not len(assignment[X]):
+                    return False
+                for Z in neighbors[X]:
+                    if (Z != Y): 
+                        worklist.add((Z,X))
+        return True # Success
+
+    def makeWorkList(self, key):
+        worklist = set()
+        for y in neighbors[key] :
+            worklist.add((key, y))
+            worklist.add((y, key))
+        return worklist
+    
