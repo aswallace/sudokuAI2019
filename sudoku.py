@@ -296,6 +296,8 @@ class SudokuGame(object):
             ]
         )
 
+    def getCell(self, cell):
+        return self.puzzle[cell[0]][cell[1]]
 
     def getRow(self, row):
         '''given a row index, returns the values of all the cells in that row'''

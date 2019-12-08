@@ -56,6 +56,7 @@ class SudokuSolver:
                     worklist.add((key, value))
                     worklist.add((value, key))
             if self.AC3(worklist):
+                # print(self.game.puzzle)
                 assignment = self.recursiveBacktrack('b')
             else:
                 assignment = False
@@ -128,9 +129,13 @@ class SudokuSolver:
         minSoFar = ()
         minLen = 9
         for key in assignment.keys():
-            if len(assignment[key]) <= minLen and len(assignment[key]) > 1:
-                minSoFar = key
-                minLen = len(assignment[key])
+            if len(assignment[key]) <= minLen:
+                if (len(assignment[key]) == 1) and (self.game.getCell(key) == 0):
+                    print("This is relevant and necessary")
+                    return key
+                elif (len(assignment[key]) > 1):
+                    minSoFar = key
+                    minLen = len(assignment[key])
         return minSoFar
 
     ###TODO
@@ -156,8 +161,8 @@ class SudokuSolver:
             return True
 
         if solverMode == 'f':
-            #TODO: do forward checking
-            pass
+            worklist = self.makeWorkList(var)
+            return self.forwardChecking(worklist)
 
         if solverMode == 'm':
             worklist = self.makeWorkList(var)
@@ -167,18 +172,23 @@ class SudokuSolver:
     ###TODO
     def arcReduce(self, X, Y):
         '''helper function for AC3. Imposes arc consistency on the relation from X to Y'''
+        print("X is", X, "and Y is ", Y)
         reduced = False
         consistent = False
         assignment = self.assignment
-        domainX = assignment[X]
+        domainX = copy.deepcopy(assignment[X])
+        options = copy.deepcopy(domainX)
+        print("Y's domain is ", assignment[Y])
         # oldAssign = copy.deepcopy(assignment) #TODO: We probably don't need this
-        for x in domainX:
+        for x in options:
             for y in assignment[Y]:
                 if y != x:
                     consistent = True
             if not consistent:
+                print("X's domain was ", domainX)
                 domainX.remove(x)
                 assignment[X] = domainX
+                print("now it is ", domainX)
                 reduced = True
         return reduced
 
@@ -188,8 +198,8 @@ class SudokuSolver:
         # get the neighbors of the value, add them to set as pair with value
         # Make a set that has pairs of tuples
         assignment = self.assignment
-        while len(worklist):
-            X, Y = worklist.pop()
+        while len(worklist): # while worklist is not empty
+            X, Y = worklist.pop() # choose a pair of cells
             if self.arcReduce(X, Y):
                 if not len(assignment[X]):
                     return False
@@ -203,5 +213,18 @@ class SudokuSolver:
         for y in neighbors[key] :
             worklist.add((key, y))
             worklist.add((y, key))
+        # print(worklist)
         return worklist
     
+
+    def forwardChecking(self, worklist):
+        '''implements constraint propogation and updates the domains of all the variables'''
+        # get the neighbors of the value, add them to set as pair with value
+        # Make a set that has pairs of tuples
+        assignment = self.assignment
+        while len(worklist): # while worklist is not empty
+            X, Y = worklist.pop() # choose a pair of cells
+            if self.arcReduce(X, Y):
+                if not len(assignment[X]):
+                    return False
+        return True # Success
