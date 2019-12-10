@@ -1,6 +1,7 @@
 import array
 import copy
 import json
+import random
 from neighborDict import neighbors
 
 # Global variables
@@ -8,7 +9,6 @@ DOMAIN = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 NROWS = 9
 NCOLS = 9
 
-##Check that domain of everything in assignment is always 9 when we arrive to it
 
 class SudokuSolver:
     def __init__(self, sudokuGame):
@@ -28,6 +28,58 @@ class SudokuSolver:
                     assignment[(row, col)] = DOMAIN
         return assignment
 
+    def solveSudoku(self, solverMode, useMRV):
+        '''wrapper function that interprets which algorithm to use. Takes in a
+        constraint satisfaction problem and an algorithm to use (b (basic), f
+        (forward-checking), or m (MAC)) as input and returns assignments for all
+        the variables (as a dictionary) and number of nodes expanded'''
+        if solverMode == 'p': #AC3 as pre-processing
+            worklist = set()
+            for key in neighbors.keys():
+                for value in neighbors[key]:
+                    worklist.add((key, value))
+                    worklist.add((value, key))
+            if self.AC3(worklist):
+                # print(self.game.puzzle)
+                assignment = self.recursiveBacktrack('b', useMRV)
+            else:
+                assignment = False
+        else:
+            assignment = self.recursiveBacktrack(solverMode, useMRV)
+
+        return (assignment, self.nodesExpanded)
+
+    def recursiveBacktrack(self, solverMode, useMRV):
+        '''recursive helper for backtracking-search().
+        Returns null if there is no solution for the given assignments, returns the solution otherwise'''
+        self.nodesExpanded += 1
+        assignment = self.assignment
+        if self.isComplete():
+            return assignment
+        else:
+            if useMRV:
+                var = self.MRV() #choose a cell to assign using MRV heuristic
+            else:
+                var = self.randomVar() #choose a random variable
+
+            oldAssign = copy.deepcopy(assignment) #store a copy of current assignment
+
+            for val in oldAssign[var]:
+                if self.consistent(var, val): #if a value is consistent with constraints
+                    assignment[var] = [val] #assign the value to the cell
+                    self.game.addToGame(var, val)
+                    if self.imposeConsistency(solverMode, var):
+
+                        result = self.recursiveBacktrack(solverMode, useMRV) #recurse
+
+                        if result != False: #if the subtree finds a solution, return it
+                            return result
+
+
+                    self.game.removeFromGame(var) #otherwise un-assign the value and try again
+                    self.assignment = copy.deepcopy(oldAssign)
+                    assignment = self.assignment
+        return False #FAIL
 
     def allDiff(self, cellArray):
         '''Takes in an array of 9 values as input and checks if they are all different.
@@ -43,60 +95,6 @@ class SudokuSolver:
                     valsSeen[index] = 1
         return True
 
-    def solveSudoku(self, solverMode):
-        '''wrapper function that interprets which algorithm to use. Takes in a
-        constraint satisfaction problem and an algorithm to use (b (basic), f
-        (forward-checking), or m (MAC)) as input and returns assignments for all
-        the variables (as a dictionary) and number of nodes expanded'''
-        if solverMode == 'p': #AC3 as pre-processing
-            worklist = set()
-            for key in neighbors.keys():
-                for value in neighbors[key]:
-                    worklist.add((key, value))
-                    worklist.add((value, key))
-            if self.AC3(worklist):
-                # print(self.game.puzzle)
-                assignment = self.recursiveBacktrack('b')
-            else:
-                assignment = False
-        else:
-            assignment = self.recursiveBacktrack(solverMode)
-
-        return (assignment, self.nodesExpanded)
-
-
-    def recursiveBacktrack(self, solverMode):
-        '''recursive helper for backtracking-search().
-        Returns null if there is no solution for the given assignments, returns the solution otherwise'''
-        self.nodesExpanded += 1
-        assignment = self.assignment
-        if self.isComplete():
-            return assignment
-        else:
-            var = self.MRV() #choose a cell to assign using MRV heuristic
-
-            #self.orderByLCV(var) #order values for var using LCV heuristic
-            oldAssign = copy.deepcopy(assignment) #store a copy of current assignment
-
-            for val in oldAssign[var]:
-                if self.consistent(var, val): #if a value is consistent with constraints
-                    # if (var == (8,3) and val == 3):
-                    #     print("OH NO!!11111111111111111111")
-                    assignment[var] = [val] #assign the value to the cell
-                    self.game.addToGame(var, val)
-                    if self.imposeConsistency(solverMode, var):
-
-                        result = self.recursiveBacktrack(solverMode) #recurse
-
-                        if result != False: #if the subtree finds a solution, return it
-                            return result
-
-
-                    self.game.removeFromGame(var) #otherwise un-assign the value and try again
-                    self.assignment = copy.deepcopy(oldAssign)
-                    assignment = self.assignment
-        return False #FAIL
-
     def isComplete(self):
         '''checks if all of the cells in the puzzle have been filled (aka, assigned
         a value)'''
@@ -110,7 +108,7 @@ class SudokuSolver:
         ''' Checks that assignment of variable var does not violate Sukodu's constraints '''
         row = self.game.getRow(var[0]).copy() #make a copy of the values in the current row
         row[var[1]] = val #assign the new value to the row
-        
+
 
         col = self.game.getCol(var[1]).copy() #repeat with column
         col[var[0]] = val
@@ -122,7 +120,6 @@ class SudokuSolver:
 
         # return whether all the values are different
         return self.allDiff(row) and self.allDiff(col) and self.allDiff(box)
-
 
     ### TODO: Think about implementing highest degree variable tie breaker
     def MRV(self):
@@ -139,6 +136,14 @@ class SudokuSolver:
                     minSoFar = key
                     minLen = len(assignment[key])
         return minSoFar
+
+    def randomVar(self):
+        '''chooses a random unassigned variable'''
+        assignment = self.assignment
+        var = (random.choice(range(9)), random.choice(range(9)))
+        while len(assignment[var]) <= 1:
+            var = (random.choice(range(9)), random.choice(range(9)))
+        return var
 
     ###TODO
     def orderByLCV(self, var):
@@ -170,11 +175,10 @@ class SudokuSolver:
             worklist = self.makeWorkList(var)
             return self.AC3(worklist)
 
-
     ###TODO
     def arcReduce(self, X, Y):
         '''helper function for AC3. Imposes arc consistency on the relation from X to Y'''
-        
+
         reduced = False
 
         assignment = self.assignment
@@ -210,7 +214,7 @@ class SudokuSolver:
                 if len(assignment[X])==0:
                     return False
                 for Z in neighbors[X]:
-                    if (Z != Y): 
+                    if (Z != Y):
                         worklist.add((Z,X))
         return True # Success
 
@@ -220,7 +224,7 @@ class SudokuSolver:
             worklist.add((y, key))
         # print(worklist)
         return worklist
-    
+
 
     def forwardChecking(self, worklist):
         '''implements constraint propogation and updates the domains of all the variables'''
