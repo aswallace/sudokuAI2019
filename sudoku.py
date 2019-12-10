@@ -301,7 +301,7 @@ class SudokuGame(object):
 
     def getRow(self, row):
         '''given a row index, returns the values of all the cells in that row'''
-        return self.puzzle[row]
+        return self.puzzle[row][:]
 
     def getCol(self, col):
         '''given a column index, returns the values of all the cells in that row'''

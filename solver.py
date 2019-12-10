@@ -49,7 +49,6 @@ class SudokuSolver:
         (forward-checking), or m (MAC)) as input and returns assignments for all
         the variables (as a dictionary) and number of nodes expanded'''
         if solverMode == 'p': #AC3 as pre-processing
-            #TODO: do AC3
             worklist = set()
             for key in neighbors.keys():
                 for value in neighbors[key]:
@@ -81,15 +80,18 @@ class SudokuSolver:
 
             for val in oldAssign[var]:
                 if self.consistent(var, val): #if a value is consistent with constraints
-
+                    # if (var == (8,3) and val == 3):
+                    #     print("OH NO!!11111111111111111111")
+                    assignment[var] = [val] #assign the value to the cell
+                    self.game.addToGame(var, val)
                     if self.imposeConsistency(solverMode, var):
 
-                        assignment[var] = [val] #assign the value to the cell
-                        self.game.addToGame(var, val)
                         result = self.recursiveBacktrack(solverMode) #recurse
 
                         if result != False: #if the subtree finds a solution, return it
                             return result
+
+
                     self.game.removeFromGame(var) #otherwise un-assign the value and try again
                     self.assignment = copy.deepcopy(oldAssign)
                     assignment = self.assignment
@@ -106,16 +108,17 @@ class SudokuSolver:
 
     def consistent(self, var, val):
         ''' Checks that assignment of variable var does not violate Sukodu's constraints '''
-
         row = self.game.getRow(var[0]).copy() #make a copy of the values in the current row
         row[var[1]] = val #assign the new value to the row
+        
 
         col = self.game.getCol(var[1]).copy() #repeat with column
         col[var[0]] = val
 
         box = self.game.getBox(var[0], var[1]).copy() #repeat with box
-        index = ((var[0]%3)+1) * ((var[1]%3)+1) -1
+        index = ((var[0]%3)*3) + ((var[1]%3))
         box[index] = val
+
 
         # return whether all the values are different
         return self.allDiff(row) and self.allDiff(col) and self.allDiff(box)
@@ -131,7 +134,6 @@ class SudokuSolver:
         for key in assignment.keys():
             if len(assignment[key]) <= minLen:
                 if (len(assignment[key]) == 1) and (self.game.getCell(key) == 0):
-                    print("This is relevant and necessary")
                     return key
                 elif (len(assignment[key]) > 1):
                     minSoFar = key
@@ -172,23 +174,24 @@ class SudokuSolver:
     ###TODO
     def arcReduce(self, X, Y):
         '''helper function for AC3. Imposes arc consistency on the relation from X to Y'''
-        print("X is", X, "and Y is ", Y)
+        
         reduced = False
-        consistent = False
+
         assignment = self.assignment
-        domainX = copy.deepcopy(assignment[X])
-        options = copy.deepcopy(domainX)
-        print("Y's domain is ", assignment[Y])
-        # oldAssign = copy.deepcopy(assignment) #TODO: We probably don't need this
-        for x in options:
+        domainX = copy.deepcopy(assignment[X]) #list of values that X can be
+        # options = copy.deepcopy(domainX)
+        for x in domainX:
+            consistent = False
             for y in assignment[Y]:
                 if y != x:
                     consistent = True
             if not consistent:
-                print("X's domain was ", domainX)
-                domainX.remove(x)
-                assignment[X] = domainX
-                print("now it is ", domainX)
+                # print("X's domain was ", domainX)
+                # print("notconsistent")
+                # domainX.remove(x)
+                # assignment[X] = domainX
+                assignment[X].remove(x)
+                # print("now it is ", domainX)
                 reduced = True
         return reduced
 
@@ -197,11 +200,14 @@ class SudokuSolver:
         '''implements constraint propogation and updates the domains of all the variables'''
         # get the neighbors of the value, add them to set as pair with value
         # Make a set that has pairs of tuples
+        # print(worklist)
         assignment = self.assignment
         while len(worklist): # while worklist is not empty
             X, Y = worklist.pop() # choose a pair of cells
-            if self.arcReduce(X, Y):
-                if not len(assignment[X]):
+            if self.arcReduce(X, Y): # it reduced something
+                # print("REDUCED", assignment[X])
+                # print(neighbors[X])
+                if len(assignment[X])==0:
                     return False
                 for Z in neighbors[X]:
                     if (Z != Y): 
@@ -211,7 +217,6 @@ class SudokuSolver:
     def makeWorkList(self, key):
         worklist = set()
         for y in neighbors[key] :
-            worklist.add((key, y))
             worklist.add((y, key))
         # print(worklist)
         return worklist
@@ -224,7 +229,11 @@ class SudokuSolver:
         assignment = self.assignment
         while len(worklist): # while worklist is not empty
             X, Y = worklist.pop() # choose a pair of cells
+            print("lookin at X: ", X, "Y: ", Y)
             if self.arcReduce(X, Y):
-                if not len(assignment[X]):
+                print("X domain: ", assignment[X])
+                print("Y domain: ", assignment[Y])
+                if len(assignment[X]) == 0:
+                    print("ooopsie")
                     return False
         return True # Success
