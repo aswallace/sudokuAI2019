@@ -179,8 +179,8 @@ class SudokuSolver:
 
         assignment = self.assignment
         domainX = copy.deepcopy(assignment[X]) #list of values that X can be
-        # options = copy.deepcopy(domainX)
-        for x in domainX:
+        options = copy.deepcopy(domainX)
+        for x in options:
             consistent = False
             for y in assignment[Y]:
                 if y != x:
@@ -188,9 +188,9 @@ class SudokuSolver:
             if not consistent:
                 # print("X's domain was ", domainX)
                 # print("notconsistent")
-                # domainX.remove(x)
-                # assignment[X] = domainX
-                assignment[X].remove(x)
+                domainX.remove(x)
+                assignment[X] = domainX
+                # assignment[X].remove(x)
                 # print("now it is ", domainX)
                 reduced = True
         return reduced
@@ -229,11 +229,11 @@ class SudokuSolver:
         assignment = self.assignment
         while len(worklist): # while worklist is not empty
             X, Y = worklist.pop() # choose a pair of cells
-            print("lookin at X: ", X, "Y: ", Y)
+            # print("lookin at X: ", X, "Y: ", Y)
             if self.arcReduce(X, Y):
-                print("X domain: ", assignment[X])
-                print("Y domain: ", assignment[Y])
+                # print("X domain: ", assignment[X])
+                # print("Y domain: ", assignment[Y])
                 if len(assignment[X]) == 0:
-                    print("ooopsie")
+                    # print("ooopsie")
                     return False
         return True # Success
