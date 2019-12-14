@@ -180,25 +180,6 @@ class SudokuSolver:
             worklist = self.makeWorkList(var)
             return self.AC3(worklist)
 
-    ###TODO
-    def arcReduce(self, X, Y):
-        '''helper function for AC3. Imposes arc consistency on the relation from X to Y'''
-        #pseudocode: https://en.wikipedia.org/wiki/AC-3_algorithm
-
-        changed = False
-        assignment = self.assignment
-        domainX = copy.deepcopy(assignment)
-        #for each value vx in domain of X:
-        for vx in domainX:
-            #find a value vy in domain of Y that satisfies constraints
-            #if there is no such vy,
-            if not self.consistentValExists(vx, Y):
-                #remove vx from X's domain
-                assignment[X].remove(vx)
-                #change changed to true
-                changed = True
-
-        return changed
 
     def consistentValExists(self, vx, Y):
         '''helper function for arcReduce. Returns a boolean: true if there exists
@@ -210,24 +191,48 @@ class SudokuSolver:
         return False
 
 
-    ###TODO
+    def arcReduce(self, X, Y):
+        '''helper function for AC3. Imposes arc consistency on the relation from X to Y'''
+        #pseudocode: https://en.wikipedia.org/wiki/AC-3_algorithm
+
+        changed = False
+        assignment = self.assignment
+        domainX = copy.deepcopy(assignment)
+        #for each value vx in domain of X:
+        for vx in domainX:
+            #if there is no value vy in the domain of Y that satisfies constraints,
+            if not self.consistentValExists(vx, Y):
+                #remove vx from X's domain
+                assignment[X].remove(vx)
+                #change changed to true
+                changed = True
+
+        return changed
+
+
     def AC3(self, worklist):
         '''implements constraint propogation and updates the domains of all the variables'''
-        # get the neighbors of the value, add them to set as pair with value
-        # Make a set that has pairs of tuples
-        # print(worklist)
-        assignment = self.assignment
-        while len(worklist): # while worklist is not empty
-            X, Y = worklist.pop() # choose a pair of cells
-            if self.arcReduce(X, Y): # it reduced something
-                # print("REDUCED", assignment[X])
-                # print(neighbors[X])
-                if len(assignment[X])==0:
-                    return False
-                for Z in neighbors[X]:
-                    if (Z != Y):
-                        worklist.add((Z,X))
-        return True # Success
+
+        #while worklist is not empty
+        while len(worklist) > 0:
+
+            # remove an arbitrary arc (X, Y) from worklist
+            X, Y = worklist.pop()
+
+            #if arcReduce(X,Y):
+            if self.arcReduce(X, Y):
+                #if domain of X is empty:
+                if len(self.assigment[X]) == 0:
+                    return False #return failure
+                #for each Z != Y in X's neighbors, add (Z, X) to worklist
+                for Z in neighborDict[X]:
+                    if Z != Y:
+                        worklist.add((Z, X))
+
+
+
+
+
 
     def makeWorkList(self, key):
         worklist = set()
