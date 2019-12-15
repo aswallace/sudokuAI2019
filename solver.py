@@ -34,13 +34,12 @@ class SudokuSolver:
         (forward-checking), or m (MAC)) as input and returns assignments for all
         the variables (as a dictionary) and number of nodes expanded'''
         if solverMode == 'p': #AC3 as pre-processing
-            worklist = set()
-            for key in neighbors.keys():
-                for value in neighbors[key]:
-                    worklist.add((key, value))
-                    worklist.add((value, key))
-            if self.AC3(worklist):
-                # print(self.game.puzzle)
+            # worklist = set()
+            # for key in neighbors.keys():
+            #     for value in neighbors[key]:
+            #         worklist.add((key, value))
+            #         worklist.add((value, key))
+            if self.AC3():
                 assignment = self.recursiveBacktrack('b', useMRV)
             else:
                 assignment = False
@@ -190,17 +189,29 @@ class SudokuSolver:
                 return True
         return False
 
+    def consistentValExistswithPrint(self, vx, Y):
+        '''helper function for arcReduce. Returns a boolean: true if there exists
+        a consistent value in the domain of Y for the given value vx, false otherwise'''
+        domainY = self.assignment[Y]
+        for vy in domainY:
+            print("vx, ", vx)
+            print("vy,", vy)
+            if vy != vx:
+                print("we figured out this vx is OK")
+                return True
+        return False
 
     def arcReduce(self, X, Y):
         '''helper function for AC3. Imposes arc consistency on the relation from X to Y'''
         #pseudocode: https://en.wikipedia.org/wiki/AC-3_algorithm
-
         changed = False
         assignment = self.assignment
-        domainX = copy.deepcopy(assignment)
+        domainX = copy.deepcopy(assignment[X])
         #for each value vx in domain of X:
         for vx in domainX:
-            #if there is no value vy in the domain of Y that satisfies constraints,
+            #if there is no value vy in the domain of Y that satisfies constraints
+            if X == (0, 2) and Y == (0, 1):
+                self.consistentValExistswithPrint(vx, Y)
             if not self.consistentValExists(vx, Y):
                 #remove vx from X's domain
                 assignment[X].remove(vx)
@@ -210,8 +221,11 @@ class SudokuSolver:
         return changed
 
 
-    def AC3(self, worklist):
+    def AC3(self):
         '''implements constraint propogation and updates the domains of all the variables'''
+
+        #create worklist of all directed arcs
+        worklist = self.makeWorkList()
 
         #while worklist is not empty
         while len(worklist) > 0:
@@ -222,23 +236,23 @@ class SudokuSolver:
             #if arcReduce(X,Y):
             if self.arcReduce(X, Y):
                 #if domain of X is empty:
-                if len(self.assigment[X]) == 0:
+                if len(self.assignment[X]) == 0:
                     return False #return failure
                 #for each Z != Y in X's neighbors, add (Z, X) to worklist
-                for Z in neighborDict[X]:
+                for Z in neighbors[X]:
                     if Z != Y:
                         worklist.add((Z, X))
 
+        return True #did it!
 
 
-
-
-
-    def makeWorkList(self, key):
+    def makeWorkList(self):
+        '''makes a worklist containing all neighbor pairs as directed arcs'''
         worklist = set()
-        for y in neighbors[key] :
-            worklist.add((y, key))
-        # print(worklist)
+        for X in self.assignment.keys():
+            for Y in neighbors[X]:
+                worklist.add((Y, X))
+                worklist.add((X, Y))
         return worklist
 
 
@@ -249,11 +263,7 @@ class SudokuSolver:
         assignment = self.assignment
         while len(worklist): # while worklist is not empty
             X, Y = worklist.pop() # choose a pair of cells
-            #print("lookin at X: ", X, "Y: ", Y)
             if self.arcReduce(X, Y):
-            #    print("X domain: ", assignment[X])
-            #    print("Y domain: ", assignment[Y])
                 if len(assignment[X]) == 0:
-        #        print("ooopsie")
                     return False
         return True # Success
