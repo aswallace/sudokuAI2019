@@ -20,6 +20,8 @@ Run the file sudoku.py with the following argument options:
 
 -s : Specify what form of search to use. Only applicable to AI mode. Options:  b= basic search, p= with constraint propagation as pre-processing only, f=with forward-checking, m= MAC search
 
+-v: Specify what variable ordering heuristic to use. Only applicable to AI mode. Options: m= MRV, r= random, o= In order
+
 Example Commands to run the Solver:
 
 "python sudoku.py -b debug.sudoku -a -f s"
