@@ -55,15 +55,11 @@ class SudokuSolver:
         '''recursive helper for backtracking-search().
         Returns null if there is no solution for the given assignments, returns the solution otherwise'''
         self.nodesExpanded += 1
-<<<<<<< HEAD
         # if self.nodesExpanded % 20000 == 0:
         #     print(self.nodesExpanded)
         # if self.nodesExpanded >= 500000:
         #     print(">500,000")
         #     return False
-=======
-        print(self.nodesExpanded)
->>>>>>> d27b1d6a4e177a7c35b5cbf829a208f573155386
         assignment = self.assignment
         if self.isComplete():
             return assignment
