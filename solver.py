@@ -9,6 +9,24 @@ DOMAIN = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 NROWS = 9
 NCOLS = 9
 
+# pass in solution and see if we ever rule out the correct solution
+# MRV? without inference
+# in order variable heuristic disrupting MRV?
+
+# experiment: take out MRV, make it do the bottom to top order, try with and
+# without inference
+# (Ramya and Arielle result that MRV is not the best?)
+
+# ^if we
+
+# can borrow Ramya and Arielle code (acknowledge if you see anything but try not see anything)
+
+# AC-3 is probably right (Prof. Erin thinks)
+# and we think backtracking is probably right
+
+# we set out to discover how much inference matters
+# maybe we discover an interesting interaction between MRV and inference? (hold variable
+# ordering constant)
 
 class SudokuSolver:
     def __init__(self, sudokuGame):
@@ -28,7 +46,7 @@ class SudokuSolver:
                     assignment[(row, col)] = DOMAIN
         return assignment
 
-    def solveSudoku(self, solverMode, useMRV):
+    def solveSudoku(self, solverMode, variableChoice):
         '''wrapper function that interprets which algorithm to use. Takes in a
         constraint satisfaction problem and an algorithm to use (b (basic), f
         (forward-checking), or m (MAC)) as input and returns assignments for all
@@ -40,30 +58,23 @@ class SudokuSolver:
                     worklist.add((key, value))
                     worklist.add((value, key))
             if self.AC3(worklist):
-                # print(self.game.puzzle)
-                assignment = self.recursiveBacktrack('b', useMRV)
+                assignment = self.recursiveBacktrack('b', variableChoice)
             else:
                 assignment = False
         else:
-            print("now we're gonnna backtrack")
-            print(useMRV)
-            assignment = self.recursiveBacktrack(solverMode, useMRV)
+            assignment = self.recursiveBacktrack(solverMode, variableChoice)
 
         return (assignment, self.nodesExpanded)
 
-    def recursiveBacktrack(self, solverMode, useMRV):
+    def recursiveBacktrack(self, solverMode, variableChoice):
         '''recursive helper for backtracking-search().
         Returns null if there is no solution for the given assignments, returns the solution otherwise'''
         self.nodesExpanded += 1
-        print(self.nodesExpanded)
         assignment = self.assignment
         if self.isComplete():
             return assignment
         else:
-            if useMRV:
-                var = self.MRV() #choose a cell to assign using MRV heuristic
-            else:
-                var = self.randomVar() #choose a random variable
+            var = self.chooseVar(variableChoice)
 
             oldAssign = copy.deepcopy(assignment) #store a copy of current assignment
 
@@ -73,7 +84,7 @@ class SudokuSolver:
                     self.game.addToGame(var, val)
                     if self.imposeConsistency(solverMode, var):
 
-                        result = self.recursiveBacktrack(solverMode, useMRV) #recurse
+                        result = self.recursiveBacktrack(solverMode, variableChoice) #recurse
 
                         if result != False: #if the subtree finds a solution, return it
                             return result
@@ -83,6 +94,20 @@ class SudokuSolver:
                     self.assignment = copy.deepcopy(oldAssign)
                     assignment = self.assignment
         return False #FAIL
+
+
+    def chooseVar(self, VariableChoice):
+        if VariableChoice == 'm':
+            return self.MRV()
+        if VariableChoice == 'r':
+            return self.randomVar()
+        if VariableChoice == 'o':
+            return self.varInOrder()
+        else:
+            print("what the heck how did you even get here. bad")
+            return
+
+
 
     def allDiff(self, cellArray):
         '''Takes in an array of 9 values as input and checks if they are all different.
@@ -147,6 +172,15 @@ class SudokuSolver:
         while len(assignment[var]) <= 1: #if the variable is already assigned, choose a new one
             var = (random.choice(range(9)), random.choice(range(9)))
         return var
+
+    def varInOrder(self):
+        '''from the bottom right corner of the board to the top left corner, selects
+        the first unassigned variable'''
+        for row in range(8, -1, -1): #from 8-0
+            for col in range(8, -1, -1):
+                var = (row, col)
+                if self.game.getCell(var) == 0:
+                    return var
 
     ###TODO
     def orderByLCV(self, var):
@@ -236,11 +270,7 @@ class SudokuSolver:
         assignment = self.assignment
         while len(worklist): # while worklist is not empty
             X, Y = worklist.pop() # choose a pair of cells
-            print("lookin at X: ", X, "Y: ", Y)
             if self.arcReduce(X, Y):
-                print("X domain: ", assignment[X])
-                print("Y domain: ", assignment[Y])
                 if len(assignment[X]) == 0:
-                    print("ooopsie")
                     return False
         return True # Success
