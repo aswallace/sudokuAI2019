@@ -45,6 +45,8 @@ class SudokuSolver:
             else:
                 assignment = False
         else:
+            print("now we're gonnna backtrack")
+            print(useMRV)
             assignment = self.recursiveBacktrack(solverMode, useMRV)
 
         return (assignment, self.nodesExpanded)
@@ -53,11 +55,15 @@ class SudokuSolver:
         '''recursive helper for backtracking-search().
         Returns null if there is no solution for the given assignments, returns the solution otherwise'''
         self.nodesExpanded += 1
+<<<<<<< HEAD
         # if self.nodesExpanded % 20000 == 0:
         #     print(self.nodesExpanded)
         # if self.nodesExpanded >= 500000:
         #     print(">500,000")
         #     return False
+=======
+        print(self.nodesExpanded)
+>>>>>>> d27b1d6a4e177a7c35b5cbf829a208f573155386
         assignment = self.assignment
         if self.isComplete():
             return assignment
@@ -146,7 +152,7 @@ class SudokuSolver:
         '''chooses a random unassigned variable'''
         assignment = self.assignment
         var = (random.choice(range(9)), random.choice(range(9)))
-        while len(assignment[var]) <= 1:
+        while len(assignment[var]) <= 1: #if the variable is already assigned, choose a new one
             var = (random.choice(range(9)), random.choice(range(9)))
         return var
 
