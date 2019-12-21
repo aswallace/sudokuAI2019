@@ -1,6 +1,7 @@
 import array
 import copy
 import json
+import random
 from neighborDict import neighbors
 
 # Global variables
@@ -8,7 +9,24 @@ DOMAIN = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 NROWS = 9
 NCOLS = 9
 
-##Check that domain of everything in assignment is always 9 when we arrive to it
+# pass in solution and see if we ever rule out the correct solution
+# MRV? without inference
+# in order variable heuristic disrupting MRV?
+
+# experiment: take out MRV, make it do the bottom to top order, try with and
+# without inference
+# (Ramya and Arielle result that MRV is not the best?)
+
+# ^if we
+
+# can borrow Ramya and Arielle code (acknowledge if you see anything but try not see anything)
+
+# AC-3 is probably right (Prof. Erin thinks)
+# and we think backtracking is probably right
+
+# we set out to discover how much inference matters
+# maybe we discover an interesting interaction between MRV and inference? (hold variable
+# ordering constant)
 
 class SudokuSolver:
     def __init__(self, sudokuGame):
@@ -28,6 +46,73 @@ class SudokuSolver:
                     assignment[(row, col)] = DOMAIN
         return assignment
 
+    def solveSudoku(self, solverMode, variableChoice):
+        '''wrapper function that interprets which algorithm to use. Takes in a
+        constraint satisfaction problem and an algorithm to use (b (basic), f
+        (forward-checking), or m (MAC)) as input and returns assignments for all
+        the variables (as a dictionary) and number of nodes expanded'''
+        if solverMode == 'p': #AC3 as pre-processing
+            worklist = set()
+            for key in neighbors.keys():
+                for value in neighbors[key]:
+                    worklist.add((key, value))
+                    worklist.add((value, key))
+            if self.AC3(worklist):
+                assignment = self.recursiveBacktrack('b', variableChoice)
+            else:
+                assignment = False
+        else:
+            assignment = self.recursiveBacktrack(solverMode, variableChoice)
+
+        return (assignment, self.nodesExpanded)
+
+    def recursiveBacktrack(self, solverMode, variableChoice):
+        '''recursive helper for backtracking-search().
+        Returns null if there is no solution for the given assignments, returns the solution otherwise'''
+        self.nodesExpanded += 1
+        # if self.nodesExpanded % 20000 == 0:
+        #     print(self.nodesExpanded)
+        # if self.nodesExpanded >= 500000:
+        #     print(">500,000")
+        #     return False
+        assignment = self.assignment
+        if self.isComplete():
+            return assignment
+        else:
+            var = self.chooseVar(variableChoice)
+
+            oldAssign = copy.deepcopy(assignment) #store a copy of current assignment
+
+            for val in oldAssign[var]:
+                if self.consistent(var, val): #if a value is consistent with constraints
+                    assignment[var] = [val] #assign the value to the cell
+                    self.game.addToGame(var, val)
+                    if self.imposeConsistency(solverMode, var):
+
+                        result = self.recursiveBacktrack(solverMode, variableChoice) #recurse
+
+                        if result != False: #if the subtree finds a solution, return it
+                            return result
+
+
+                    self.game.removeFromGame(var) #otherwise un-assign the value and try again
+                    self.assignment = copy.deepcopy(oldAssign)
+                    assignment = self.assignment
+        return False #FAIL
+
+
+    def chooseVar(self, VariableChoice):
+        if VariableChoice == 'm':
+            return self.MRV()
+        if VariableChoice == 'r':
+            return self.randomVar()
+        if VariableChoice == 'o':
+            return self.varInOrder()
+        else:
+            print("what the heck how did you even get here. bad")
+            return
+
+
 
     def allDiff(self, cellArray):
         '''Takes in an array of 9 values as input and checks if they are all different.
@@ -43,53 +128,6 @@ class SudokuSolver:
                     valsSeen[index] = 1
         return True
 
-    def solveSudoku(self, solverMode):
-        '''wrapper function that interprets which algorithm to use. Takes in a
-        constraint satisfaction problem and an algorithm to use (b (basic), f
-        (forward-checking), or m (MAC)) as input and returns assignments for all
-        the variables (as a dictionary) and number of nodes expanded'''
-        if solverMode == 'p': #AC3 as pre-processing
-            #TODO: do AC3
-            self.AC3()
-
-            #then do basic backtracking search
-            assignment = self.recursiveBacktrack('b')
-        else:
-            assignment = self.recursiveBacktrack(solverMode)
-
-        return (assignment, self.nodesExpanded)
-
-
-    def recursiveBacktrack(self, solverMode):
-        '''recursive helper for backtracking-search().
-        Returns null if there is no solution for the given assignments, returns the solution otherwise'''
-        self.nodesExpanded += 1
-        assignment = self.assignment
-        if self.isComplete():
-            return assignment
-        else:
-            var = self.MRV() #choose a cell to assign using MRV heuristic
-
-            #self.orderByLCV(var) #order values for var using LCV heuristic
-            oldAssign = copy.deepcopy(assignment) #store a copy of current assignment
-
-            for val in oldAssign[var]:
-                if self.consistent(var, val): #if a value is consistent with constraints
-
-                    self.imposeConsistency(solverMode)
-
-                    assignment[var] = [val] #assign the value to the cell
-                    self.game.addToGame(var, val)
-                    result = self.recursiveBacktrack(solverMode) #recurse
-
-                    if result != False: #if the subtree finds a solution, return it
-                        return result
-                    else:
-                        self.game.removeFromGame(var) #otherwise un-assign the value and try again
-                        self.assignment = copy.deepcopy(oldAssign)
-                        assignment = self.assignment
-        return False #FAIL
-
     def isComplete(self):
         '''checks if all of the cells in the puzzle have been filled (aka, assigned
         a value)'''
@@ -101,20 +139,20 @@ class SudokuSolver:
 
     def consistent(self, var, val):
         ''' Checks that assignment of variable var does not violate Sukodu's constraints '''
-
         row = self.game.getRow(var[0]).copy() #make a copy of the values in the current row
         row[var[1]] = val #assign the new value to the row
+
 
         col = self.game.getCol(var[1]).copy() #repeat with column
         col[var[0]] = val
 
         box = self.game.getBox(var[0], var[1]).copy() #repeat with box
-        index = ((var[0]%3)+1) * ((var[1]%3)+1) -1
+        index = ((var[0]%3)*3) + ((var[1]%3))
         box[index] = val
+
 
         # return whether all the values are different
         return self.allDiff(row) and self.allDiff(col) and self.allDiff(box)
-
 
     ### TODO: Think about implementing highest degree variable tie breaker
     def MRV(self):
@@ -124,10 +162,30 @@ class SudokuSolver:
         minSoFar = ()
         minLen = 9
         for key in assignment.keys():
-            if len(assignment[key]) <= minLen and len(assignment[key]) > 1:
-                minSoFar = key
-                minLen = len(assignment[key])
+            if len(assignment[key]) <= minLen:
+                if (len(assignment[key]) == 1) and (self.game.getCell(key) == 0):
+                    return key
+                elif (len(assignment[key]) > 1):
+                    minSoFar = key
+                    minLen = len(assignment[key])
         return minSoFar
+
+    def randomVar(self):
+        '''chooses a random unassigned variable'''
+        assignment = self.assignment
+        var = (random.choice(range(9)), random.choice(range(9)))
+        while len(assignment[var]) <= 1: #if the variable is already assigned, choose a new one
+            var = (random.choice(range(9)), random.choice(range(9)))
+        return var
+
+    def varInOrder(self):
+        '''from the bottom right corner of the board to the top left corner, selects
+        the first unassigned variable'''
+        for row in range(8, -1, -1): #from 8-0
+            for col in range(8, -1, -1):
+                var = (row, col)
+                if self.game.getCell(var) == 0:
+                    return var
 
     ###TODO
     def orderByLCV(self, var):
@@ -147,27 +205,77 @@ class SudokuSolver:
         #sort the values by lowest value in numConstraints to highest
         #make this sorted list the new value of assignment[var]
 
-    def imposeConsistency(self, solverMode):
+    def imposeConsistency(self, solverMode, var):
         if solverMode == 'b':
-            return
+            return True
 
         if solverMode == 'f':
-            #TODO: do forward checking
-            pass
+            worklist = self.makeWorkList(var)
+            return self.forwardChecking(worklist)
 
         if solverMode == 'm':
-            #TODO: do AC3
-            pass
-
+            worklist = self.makeWorkList(var)
+            return self.AC3(worklist)
 
     ###TODO
     def arcReduce(self, X, Y):
         '''helper function for AC3. Imposes arc consistency on the relation from X to Y'''
-        return 0
-        #pseudocode in notes
+
+        reduced = False
+
+        assignment = self.assignment
+        domainX = copy.deepcopy(assignment[X]) #list of values that X can be
+        options = copy.deepcopy(domainX)
+        for x in options:
+            consistent = False
+            for y in assignment[Y]:
+                if y != x:
+                    consistent = True
+            if not consistent:
+                # print("X's domain was ", domainX)
+                # print("notconsistent")
+                domainX.remove(x)
+                assignment[X] = domainX
+                # assignment[X].remove(x)
+                # print("now it is ", domainX)
+                reduced = True
+        return reduced
 
     ###TODO
-    def AC3(self):
+    def AC3(self, worklist):
         '''implements constraint propogation and updates the domains of all the variables'''
-        return 0
-        #pseudocode in notes
+        # get the neighbors of the value, add them to set as pair with value
+        # Make a set that has pairs of tuples
+        # print(worklist)
+        assignment = self.assignment
+        while len(worklist): # while worklist is not empty
+            X, Y = worklist.pop() # choose a pair of cells
+            if self.arcReduce(X, Y): # it reduced something
+                # print("REDUCED", assignment[X])
+                # print(neighbors[X])
+                if len(assignment[X])==0:
+                    return False
+                for Z in neighbors[X]:
+                    if (Z != Y):
+                        worklist.add((Z,X))
+        return True # Success
+
+    def makeWorkList(self, key):
+        worklist = set()
+        for y in neighbors[key] :
+            worklist.add((y, key))
+        # print(worklist)
+        return worklist
+
+
+    def forwardChecking(self, worklist):
+        '''implements constraint propogation and updates the domains of all the variables'''
+        # get the neighbors of the value, add them to set as pair with value
+        # Make a set that has pairs of tuples
+        assignment = self.assignment
+        while len(worklist): # while worklist is not empty
+            X, Y = worklist.pop() # choose a pair of cells
+            if self.arcReduce(X, Y):
+                if len(assignment[X]) == 0:
+                    return False
+        return True # Success
